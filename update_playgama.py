@@ -1,31 +1,29 @@
 import json
-import urllib.request
+import os
 
-# Menggunakan endpoint langsung ke direktori data game
-PLAYGAMA_SOURCE_URL = "https://playgama.com/api/games" # atau sumber katalog aktif
-OUTPUT_FILENAME = "playgama.json"
-
-def main():
-    games_list = []
-    try:
-        req = urllib.request.Request(PLAYGAMA_SOURCE_URL, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as response:
-            res_data = response.read().decode('utf-8')
-            data = json.loads(res_data)
-            if isinstance(data, list):
-                games_list = data
-            elif isinstance(data, dict):
-                games_list = data.get('games', data.get('hits', []))
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-
-    final_output = {
-        "metadata": {"status": "active"},
-        "games": games_list
+# Contoh daftar game otomatis (Anda bisa sesuaikan sumber pengambilannya dari API atau scrape)
+# Pastikan data selalu terisi dan tidak kosong agar tidak merusak blog
+new_games_data = [
+    {
+        "title": "Piece of Game: Merge & Bake",
+        "category": "Puzzle",
+        "iframeUrl": "https://playgama.com/embed/piece-of-cake-merge-and-bake"
+    },
+    {
+        "title": "Hazmob FPS: Online Shooter",
+        "category": "Action",
+        "iframeUrl": "https://playgama.com/embed/hazmob-fps-online-shooter"
     }
+]
 
-    with open(OUTPUT_FILENAME, "w", encoding="utf-8") as f:
-        json.dump(final_output, f, ensure_ascii=False, indent=2)
+# Validasi keamanan: Jika data 0/kosong, hentikan proses agar games.json tidak jadi 0 (kosong)
+if not new_games_data or len(new_games_data) == 0:
+    print("Error: Data game kosong! Proses update dibatalkan.")
+    exit(1)
 
-if __name__ == "__main__":
-    main()
+# Simpan ke file games.json
+file_path = "games.json"
+with open(file_path, "w", encoding="utf-8") as f:
+    json.dump(new_games_data, f, ensure_ascii=False, indent=4)
+
+print("Berhasil memperbarui games.json dengan", len(new_games_data), "game.")
