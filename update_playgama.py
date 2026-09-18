@@ -1,34 +1,34 @@
 import json
 import urllib.request
-from datetime import datetime
 
-# --- KONFIGURASI SUMBER DATA ---
-# Masukkan link JSON katalog game Playgama atau sumber data Anda di sini
-PLAYGAMA_SOURCE_URL = "https://widgets.playgama.com/" # Sesuaikan dengan link JSON/API katalog Anda jika ada
+# URL API katalog Playgama yang asli
+PLAYGAMA_SOURCE_URL = "https://widgets.playgama.com/"
 OUTPUT_FILENAME = "playgama.json"
 
 def main():
-    print("Memulai proses update file playgama.json...")
-    
-    # Data kerangka default atau game list Anda
     games_list = []
-    
-    # Contoh struktur data yang akan disimpan secara berkala
+    try:
+        req = urllib.request.Request(PLAYGAMA_SOURCE_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            if isinstance(data, list):
+                games_list = data
+            elif 'segments' in data and len(data['segments']) > 0:
+                games_list = data['segments'][0].get('hits', [])
+            elif 'hits' in data:
+                games_list = data['hits']
+            elif 'games' in data:
+                games_list = data['games']
+    except Exception as e:
+        print(f"Error: {e}")
+
     final_output = {
-        "metadata": {
-            "last_updated_utc": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            "status": "active"
-        },
+        "metadata": {"status": "active"},
         "games": games_list
     }
-    
-    # Menyimpan ke file playgama.json secara otomatis
-    try:
-        with open(OUTPUT_FILENAME, "w", encoding="utf-8") as f:
-            json.dump(final_output, f, ensure_ascii=False, indent=2)
-        print("Berhasil memperbarui file playgama.json!")
-    except Exception as e:
-        print(f"Terjadi kesalahan saat menyimpan file: {e}")
+
+    with open(OUTPUT_FILENAME, "w", encoding="utf-8") as f:
+        json.dump(final_output, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
     main()
